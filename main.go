@@ -42,7 +42,8 @@ func (c *regruDNSProviderSolver) Name() string {
 }
 
 func (c *regruDNSProviderSolver) Present(challengeRequest *v1alpha1.ChallengeRequest) error {
-	klog.Infof("Call function Present: namespace=%s, zone=%s, fqdn=%s", challengeRequest.ResourceNamespace, challengeRequest.ResolvedZone, challengeRequest.ResolvedFQDN)
+	zone := strings.Join(strings.Split(challengeRequest.ResolvedFQDN, ".")[1:], ".")
+	klog.Infof("Call function Present: namespace=%s, zone=%s, fqdn=%s", challengeRequest.ResourceNamespace, zone, challengeRequest.ResolvedFQDN)
 	//_, err := loadConfig(challengeRequest.Config)
 	//if err != nil {
 	//	return fmt.Errorf("unable to load config: %v", err)
@@ -50,9 +51,9 @@ func (c *regruDNSProviderSolver) Present(challengeRequest *v1alpha1.ChallengeReq
 	//
 	//klog.Infof("decoded configuration %v", cfg)
 
-	regruClient := NewRegruClient(regru.username, regru.password, getDomainFromZone(challengeRequest.ResolvedZone))
+	regruClient := NewRegruClient(regru.username, regru.password, getDomainFromZone(zone))
 
-	klog.Infof("present for entry=%s, domain=%s, key=%s", challengeRequest.ResolvedFQDN, getDomainFromZone(challengeRequest.ResolvedZone), challengeRequest.Key)
+	klog.Infof("present for entry=%s, domain=%s, key=%s", challengeRequest.ResolvedFQDN, getDomainFromZone(zone), challengeRequest.Key)
 
 	if err := regruClient.createTXT(challengeRequest.ResolvedFQDN, challengeRequest.Key); err != nil {
 		return fmt.Errorf("unable to create TXT record: %v", err)
@@ -62,8 +63,9 @@ func (c *regruDNSProviderSolver) Present(challengeRequest *v1alpha1.ChallengeReq
 }
 
 func (c *regruDNSProviderSolver) CleanUp(challengeRequest *v1alpha1.ChallengeRequest) error {
+	zone := strings.Join(strings.Split(challengeRequest.ResolvedFQDN, ".")[1:], ".")
 	klog.Infof("Call function CleanUp: namespace=%s, zone=%s, fqdn=%s",
-		challengeRequest.ResourceNamespace, challengeRequest.ResolvedZone, challengeRequest.ResolvedFQDN)
+		challengeRequest.ResourceNamespace, zone, challengeRequest.ResolvedFQDN)
 	//cfg, err := loadConfig(challengeRequest.Config)
 	//if err != nil {
 	//	return fmt.Errorf("unable to load config: %v", err)
@@ -71,8 +73,8 @@ func (c *regruDNSProviderSolver) CleanUp(challengeRequest *v1alpha1.ChallengeReq
 	//
 	//klog.Infof("decoded configuration %v", cfg)
 
-	regruClient := NewRegruClient(regru.username, regru.password, getDomainFromZone(challengeRequest.ResolvedZone))
-	klog.Infof("delete entry=%s, domain=%s, key=%s", challengeRequest.ResolvedFQDN, getDomainFromZone(challengeRequest.ResolvedZone), challengeRequest.Key)
+	regruClient := NewRegruClient(regru.username, regru.password, getDomainFromZone(zone))
+	klog.Infof("delete entry=%s, domain=%s, key=%s", challengeRequest.ResolvedFQDN, getDomainFromZone(zone), challengeRequest.Key)
 
 	if err := regruClient.deleteTXT(challengeRequest.ResolvedFQDN, challengeRequest.Key); err != nil {
 		return fmt.Errorf("unable to delete TXT record: %v", err)
