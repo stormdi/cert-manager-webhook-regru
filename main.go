@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"os"
+	"strings"
 )
 
 const providerName = "regru-dns"
